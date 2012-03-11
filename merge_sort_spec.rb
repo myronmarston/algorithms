@@ -15,23 +15,17 @@ class MergeSort
   end
 
   def self.merge(a1, a2)
-    v1, v2 = a1.shift, a2.shift
-    [].tap do |final|
-      loop do
-        break if v1.nil? || v2.nil?
+    result = []
 
-        if v1 < v2
-          final << v1
-          v1 = a1.shift
-        else
-          final << v2
-          v2 = a2.shift
-        end
+    while a1.any? && a2.any?
+      if a1.first < a2.first
+        result << a1.shift
+      else
+        result << a2.shift
       end
-
-      final.push(*[v1, v2].compact)
-      final.push(*(a1 + a2))
     end
+
+    result + a1 + a2
   end
 end
 
