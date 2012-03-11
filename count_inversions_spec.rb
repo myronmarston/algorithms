@@ -40,18 +40,24 @@ class CountInversions
   end
 end
 
-describe CountInversions do
-  {
-    [1, 2] => 0,
-    [2, 1] => 1,
-    [3, 1, 2] => 2,
-    [3, 2, 1] => 3,
-    [7, 1, 3, 6, 2, 5, 8, 4] => 12,
-    [2, 6, 3, 4, 1, 5] => 7
-  }.each do |array, count|
-    it "counts #{count} inversions in #{array.inspect}" do
-      CountInversions.perform(array).should eq(count)
+if defined?(::RSpec)
+  describe CountInversions do
+    {
+      [1, 2] => 0,
+      [2, 1] => 1,
+      [3, 1, 2] => 2,
+      [3, 2, 1] => 3,
+      [7, 1, 3, 6, 2, 5, 8, 4] => 12,
+      [2, 6, 3, 4, 1, 5] => 7
+    }.each do |array, count|
+      it "counts #{count} inversions in #{array.inspect}" do
+        CountInversions.perform(array).should eq(count)
+      end
     end
   end
 end
 
+if __FILE__ == $0
+  array = STDIN.read.split("\n").map(&:to_i)
+  puts CountInversions.perform(array)
+end
