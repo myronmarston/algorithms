@@ -18,8 +18,12 @@ class Graph
     end.tap do |vertex|
       adjacent_labels.each do |adj_label|
         adj_vertex = vertex_for(adj_label)
-        edges << Edge.for(vertex, adj_vertex)
         vertex.adjacent_vertices << adj_vertex
+
+        edge = Edge.for(vertex, adj_vertex)
+        edges << edge
+        vertex.edges << edge
+        adj_vertex.edges << edge
       end
     end
   end
@@ -37,10 +41,20 @@ class Graph
     edge = random_edge
     edges.delete(edge)
 
+    edge.vertex_1.edges.delete(edge)
+    edge.vertex_2.edges.delete(edge)
+
     @vertices.delete edge.vertex_1
     @vertices.delete edge.vertex_2
 
-    @vertices << edge.vertex_1.merge(edge.vertex_2)
+    merged_vertex = edge.vertex_1.merge(edge.vertex_2)
+
+    @vertices << merged_vertex
+
+    #edge.vertex_1.edges.each do |e|
+      #e.vertex_1 = merged_vertex if e.vertex_1 == edge.vertex_1
+      #e.vertex_2 = merged_vertex if e.vertex_2 == edge.vertex_2
+    #end
   end
 
 private
@@ -75,6 +89,10 @@ module VertexMerger
   def merge(vertex)
     sorted_vertices = (vertices + [vertex]).sort_by(&:label)
     MergedVertex.new(sorted_vertices)
+  end
+
+  def edges
+    @edges ||= Set.new
   end
 end
 
@@ -162,6 +180,21 @@ describe Graph do
     graph.edges.map(&:vertex_labels).should =~ [["a", "b"], ["a", "c"]]
   end
 
+  it 'adds edges to the vertex objects as you add vertices' do
+    a = v("a", "b")
+    b = v("b", "a")
+
+    a.edges.should have(1).edge
+    b.edges.should have(1).edge
+
+    a_edge = a.edges.first
+    b_edge = b.edges.first
+
+    a_edge.should equal(b_edge)
+    a_edge.vertex_1.should equal(a)
+    a_edge.vertex_2.should equal(b)
+  end
+
   it 'can find a random edge' do
     v("a", "b", "c")
     v("b", "a")
@@ -198,6 +231,18 @@ describe Graph do
       graph.contract_random_edge
       graph.should have(2).vertices
       graph.vertices.should =~ [merged_vertex, c]
+    end
+
+    it 'updates other edges that reference the merged vertices so that they refer to the new merged vertex' do
+      merged_vertex = MergedVertex.new([v("a"), v("b")])
+      c = v("c")
+      stub_random_edge "a", "b"
+      graph.contract_random_edge
+
+      graph.edges.should have(1).edge
+      edge = graph.edges.first
+
+      edge.vertices.should =~ [ merged_vertex, c ]
     end
   end
 end
