@@ -23,6 +23,10 @@ class Graph
   def deep_dup
     Marshal.load(Marshal.dump(self))
   end
+
+  def random_edge
+    edges.to_a.sample
+  end
 end
 
 Edge = Struct.new(:vertex_1, :vertex_2) do
@@ -93,6 +97,15 @@ describe Graph do
     v("c", "a")
 
     graph.edges.map(&:vertex_labels).should =~ [["a", "b"], ["a", "c"]]
+  end
+
+  it 'can find a random edge' do
+    v("a", "b", "c")
+    v("b", "a")
+    v("c", "a")
+
+    selected_edges = 10.times.map { graph.random_edge }.uniq
+    selected_edges.should have(2).edges
   end
 end
 
