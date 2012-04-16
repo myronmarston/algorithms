@@ -1,6 +1,16 @@
 Vertex = Struct.new(:graph, :label) do
   def initialize(graph, label)
+    self.explored = false
     super(graph, label)
+  end
+
+  attr_writer :explored
+  def explored?
+    @explored
+  end
+
+  def unexplored?
+    !explored?
   end
 
   def outgoing_edges
