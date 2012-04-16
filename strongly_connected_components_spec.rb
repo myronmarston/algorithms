@@ -117,12 +117,12 @@ describe DepthFirstSearch do
     end
   end
 
-  xit 'works on the assignment input' do
-    graph = Graph.from_file("./scc-test-cases/assignment.txt") { |lines| lines.first(100000) }
+  it 'works on the assignment input' do
+    graph = Graph.from_file("./scc-test-cases/assignment.txt") { |lines| lines.first(10000000) }
     puts "Graph built..."
     searcher = DepthFirstSearch.new(graph)
-    sizes = searcher.find_scc_sizes
-    puts sizes.inspect
+    sizes = searcher.find_scc_sizes.sort.reverse
+    puts sizes.first(10).inspect
   end
 end
 
