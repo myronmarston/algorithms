@@ -95,5 +95,13 @@ describe DepthFirstSearch do
       searcher.find_scc_sizes.should =~ [3, 3, 4]
     end
   end
+
+  it 'works on the assignment input' do
+    graph = Graph.from_file("./scc-test-cases/assignment.txt")
+    puts "Graph built..."
+    searcher = DepthFirstSearch.new(graph)
+    sizes = searcher.find_scc_sizes
+    puts sizes.inspect
+  end
 end
 

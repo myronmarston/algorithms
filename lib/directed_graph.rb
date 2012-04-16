@@ -46,6 +46,7 @@ class Graph
       hash[label] = Vertex.new(self, label)
     end
 
+    @num_edges = 0
     yield self if block_given?
   end
 
@@ -53,13 +54,15 @@ class Graph
     tail_v = @vertices[tail]
     head_v = @vertices[head]
 
-    vertices << tail_v << head_v
-
+    @num_edges += 1
     edges << Edge.new(tail_v, head_v)
+    if @num_edges % 50000 == 0
+      puts "Added #{@num_edges} edges so far...."
+    end
   end
 
   def edges
-    @edges ||= []
+    @edges ||= Array.new(5000000)
   end
 
   def vertices
