@@ -47,7 +47,10 @@ class Graph
     end
 
     @num_edges = 0
-    yield self if block_given?
+    if block_given?
+      yield self
+      @vertices = @vertices.values # otherwise we can't Marshal.dump it...
+    end
   end
 
   def add_edge(tail, head)
@@ -66,6 +69,7 @@ class Graph
   end
 
   def vertices
+    return @vertices unless @vertices.respond_to?(:values)
     @vertices.values
   end
 

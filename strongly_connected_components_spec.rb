@@ -1,13 +1,15 @@
 require 'directed_graph'
+require 'time'
 
 class DepthFirstSearch
   class Tracker
-    attr_reader :search_order, :scc
+    attr_reader :search_order, :search_order_count
+    attr_accessor :scc_size
 
     def initialize(graph_size)
       @search_order = Array.new(graph_size)
       @search_order_count = 0
-      @scc = []
+      self.scc_size = 0
     end
 
     def done_with(vertex)
@@ -24,7 +26,7 @@ class DepthFirstSearch
     unless vertex.explored?
       yield vertex if block_given?
       vertex.explored = true
-      tracker.scc << vertex
+      tracker.scc_size += 1
     end
 
     vertex.send(edge_type).each do |edge|
@@ -49,6 +51,9 @@ class DepthFirstSearch
         vertex = next_vertex
       elsif result == :done
         tracker.done_with(vertex)
+        if tracker.search_order_count % 5000 == 0
+          puts "Done with #{tracker.search_order_count} vertices (#{Time.now.iso8601})"
+        end
         vertex = stack.pop
         break if vertex.nil?
       end
@@ -58,8 +63,9 @@ class DepthFirstSearch
   def find_scc_search_order
     tracker = Tracker.new(@graph.vertices.size)
 
-    @graph.vertices.each do |vertex|
+    @graph.vertices.each_with_index do |vertex, index|
       next if vertex.explored?
+      puts "1. Searching from #{index}th vertex... (#{Time.now.iso8601})" if index % 1000 == 0
       search_from(vertex, tracker, :incoming_edges, :tail)
     end
 
@@ -68,14 +74,23 @@ class DepthFirstSearch
 
   def find_scc_sizes
     search_order = find_scc_search_order
+    puts "=" * 80
+    puts "=" * 80
+    puts "=" * 80
+    puts
+    puts "Done with finding scc search order...."
     search_order.each { |v| v.explored = false }
+    puts "Reset explored flag..."
 
+    tracker = Tracker.new(@graph.vertices.size)
     sizes = []
-    search_order.each do |vertex|
+    search_order.each_with_index do |vertex, index|
       next if vertex.explored?
-      tracker = Tracker.new(@graph.vertices.size)
+      puts "2. Searching from #{index}th vertex... (#{Time.now.iso8601})" if index % 100 == 0
       search_from(vertex, tracker)
-      sizes << tracker.scc.size
+      puts "2. Found SCC: #{tracker.scc_size} (#{Time.now.iso8601})" if tracker.scc_size > 2
+      sizes << tracker.scc_size
+      tracker.scc_size = 0
     end
 
     sizes
@@ -118,7 +133,7 @@ describe DepthFirstSearch do
   end
 
   it 'works on the assignment input' do
-    graph = Graph.from_file("./scc-test-cases/assignment.txt") { |lines| lines.first(10000000) }
+    graph = Graph.from_file("./scc-test-cases/assignment.txt") { |lines| lines.to_a }
     puts "Graph built..."
     searcher = DepthFirstSearch.new(graph)
     sizes = searcher.find_scc_sizes.sort.reverse
